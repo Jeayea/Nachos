@@ -38,17 +38,31 @@
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName)
+//////////////////////  lab2 changed function Thread(),add a paramer prio
+Thread::Thread(char* threadName, int prio = 128, int totTime = 4)
 {
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-#ifdef USER_PROGRAM
+#ifdef USER_PROGRA
     space = NULL;
 #endif
 
-   ////////////////
+ 
+    ////// lab2 st/////////////////////////
+    totalTime = totTime;
+    usedTime = 0;
+
+    if(prio < 0)
+       priority = 0;
+    else if(prio > 128)
+       priority = 128;
+    else
+    priority = prio;
+    //////lab2 end//////////////////////////
+
+   //////////////// lab1 st/////////////////
    userID = getuid();
    int i;
    for(i = 0; i < MaxThreadNum; i++)
@@ -66,7 +80,7 @@ Thread::Thread(char* threadName)
      printf("oops,too many threads to be created\n");
      ASSERT(i < MaxThreadNum);
     }
-   ////////////////
+   //////////////// lab1 end////////////////
 
 }
 
@@ -85,11 +99,10 @@ Thread::Thread(char* threadName)
 Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
-    /////////////////
-    userID = 0;
+    ///////////////// lab1 st///////////////////////////////////////////
     threadFlags[threadID] = 0;
     threadArray[threadID] = NULL;
-   //////////////
+   ///////////////// lab1 end///////////////////////////////////////////
 
     ASSERT(this != currentThread);
     if (stack != NULL)
@@ -127,6 +140,11 @@ Thread::Fork(VoidFunctionPtr func, void *arg)
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
 					// are disabled!
+
+    //////////////////// lab2 st//////////////////////////
+    if(currentThread->getPriority() > this->getPriority())
+       currentThread->Yield();
+    ////////////////lab2 end//////////////////////////////
     (void) interrupt->SetLevel(oldLevel);
 }    
 
@@ -181,6 +199,8 @@ Thread::Finish ()
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
     
     threadToBeDestroyed = currentThread;
+    //threadToBeDestroyed->Prepend((void *)currentThread);
+
     Sleep();					// invokes SWITCH
     // not reached
 }
@@ -213,6 +233,8 @@ Thread::Yield ()
     
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
     
+    
+    //scheduler->ReadyToRun(this);
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
 	scheduler->ReadyToRun(this);
@@ -245,6 +267,7 @@ Thread::Sleep ()
 {
     Thread *nextThread;
     
+    //sprintf("thread %s go to sleep\n",currentThread->getName());
     ASSERT(this == currentThread);
     ASSERT(interrupt->getLevel() == IntOff);
     

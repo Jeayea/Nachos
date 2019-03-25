@@ -51,12 +51,6 @@
 #define MachineStateSize 18 
 
 
-///////////////// threadFlags & threadArray
-//extern int threadFlags[MaxThreadNum];
-//extern Thread* threadArray[MaxThreadNum];
-//////////////////////
-
-
 // Size of the thread's private execution stack.
 // WATCH OUT IF THIS ISN'T BIG ENOUGH!!!!!
 #define StackSize	(4 * 1024)	// in words
@@ -87,7 +81,7 @@ class Thread {
     void *machineState[MachineStateSize];  // all registers except for stackTop
 
   public:
-    Thread(char* debugName);		// initialize a Thread 
+    Thread(char* debugName, int prio = 128, int totTime = 4);		// initialize a Thread 
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete 
@@ -98,7 +92,7 @@ class Thread {
     void Fork(VoidFunctionPtr func, void *arg); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any 
 						// other thread is runnable
-    void Sleep();  				// Put the thread to sleep and 
+    void Sleep();  		 		// Put the thread to sleep and 
 						// relinquish the processor
     void Finish();  				// The thread is done executing
     
@@ -135,14 +129,14 @@ class Thread {
     AddrSpace *space;			// User code this thread is running.
 #endif
 
-/////////////////
+////////////////////////////////   lab1 st ////////////////////////////////////
     private:
        int threadID;
        int userID;
     public:
        int getThreadID(){ return threadID;}
        int getUserID(){return userID;}
-       //----------------------------------------------------------------------
+       //---------------------------------------------------------------------
        // Thread::getStatus
        //    return the status 
        //---------------------ADD By jea--------------------------------------
@@ -163,11 +157,25 @@ class Thread {
         		     return -1;        
     		     }
 	     }
-        ////////////////////////////////////////////////////////////////////////
+//////////////////////////////lab1 end////////////////////////////////////
 
+/////////////////////////lab2 st ////////////////////////////////////////
+
+    private:
+	int priority; // an interger ranged in (0,32); 0 reperent highest
+        int totalTime;
+        int usedTime;
+    public:
+	int getPriority()  { return priority;}
+        int getTotalTime() { return totalTime;}
+        int getUsedTime()  { return usedTime; }
+        void setTotalTime(int ttime) { totalTime = ttime; }
+        void setUsedTime(int utime)  { usedTime = utime; }
+
+////////////////////////lab2 end//////////////////////////////////////// 
 
 };
-/////////////////
+
 
 // Magical machine-dependent routines, defined in switch.s
 

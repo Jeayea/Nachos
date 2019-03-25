@@ -16,11 +16,11 @@
 #include "stats.h"
 #include "timer.h"
 
-///////////////// max threads num & threadFlags & threadArray
+///////////////// lab1 st///max threads num & threadFlags & threadArray
 #define MaxThreadNum 128
 extern int threadFlags[MaxThreadNum];
 extern Thread* threadArray[MaxThreadNum];
-//////////////////////
+//////////////////////  lab1 end /////////////////////////////
 
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
@@ -29,7 +29,10 @@ extern void Cleanup();				// Cleanup, called when
 						// Nachos is done.
 
 extern Thread *currentThread;			// the thread holding the CPU
+////modified  lab2 st///////////////////////////////////////////////////////////
 extern Thread *threadToBeDestroyed;  		// the thread that just finished
+// extern List * threadToBeDestroyed;//mine
+//////////////////////  lab2 end///////////////////////////////////////////////
 extern Scheduler *scheduler;			// the ready list
 extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics

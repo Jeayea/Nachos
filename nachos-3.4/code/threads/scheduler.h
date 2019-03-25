@@ -28,6 +28,10 @@ class Scheduler {
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
     
+    ////////////// lab2 st//////////////////////
+    void sortedInsert(void * thread, int p);
+    ////////////// lab2 end ////////////////////
+    
   private:
     List *readyList;  		// queue of threads that are ready to run,
 				// but not running

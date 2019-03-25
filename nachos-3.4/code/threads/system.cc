@@ -18,10 +18,12 @@ Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 					// for invoking context switches
-////////////////////
+//////////////////// lab1 st ///////////////////////////////////////////
 int threadFlags[MaxThreadNum];
 Thread* threadArray[MaxThreadNum];
-///////////////////
+//List *threadToBeDestroyed = new List; //mine
+/////////////////// lab1 end ///////////////////////////////////////////
+
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
@@ -64,8 +66,24 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
-    if (interrupt->getStatus() != IdleMode)
-	interrupt->YieldOnReturn();
+
+    //////////// lab2 RR st ///////////////////////////
+    // if currentThread run out of its total time, Yield
+    // else, usedTime ++;
+    //printf("One Tick!\n");
+    if (interrupt->getStatus() != IdleMode){
+        int usedTimeOld;
+        usedTimeOld = currentThread->getUsedTime();
+        currentThread-> setUsedTime(usedTimeOld + 1);
+        if(currentThread->getTotalTime() == (usedTimeOld)){
+            interrupt->YieldOnReturn();
+         }
+  
+     }
+    ////////////// lab2 RR end ////////////////////////
+
+    // if (interrupt->getStatus() != IdleMode)
+	// interrupt->YieldOnReturn();
 }
 
 //----------------------------------------------------------------------
@@ -85,12 +103,12 @@ Initialize(int argc, char **argv)
     char* debugArgs = "";
     bool randomYield = FALSE;
 
-    /////////////////
+    ///////////////// lab1 st ///////////////////////////
     for(int i = 0; i < MaxThreadNum; i++){
          threadFlags[i] = 0;
          threadArray[i] = NULL;
          }
-    //////////////////
+    //////////////////lab1 end/////////////////////////
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
@@ -144,8 +162,9 @@ Initialize(int argc, char **argv)
     stats = new Statistics();			// collect statistics
     interrupt = new Interrupt;			// start up interrupt handling
     scheduler = new Scheduler();		// initialize the ready queue
-    if (randomYield)				// start the timer (if needed)
-	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+    //if (randomYield)				// start the timer (if needed)  
+	//timer = new Timer(TimerInterruptHandler, 0, randomYield);
+    timer = new Timer(TimerInterruptHandler, 0, randomYield);
 
     threadToBeDestroyed = NULL;
 

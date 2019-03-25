@@ -80,6 +80,13 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+
+  /////////////////////////  lab3 st //////////////////////////////////
+  private:
+     Semaphore * lockSem;
+     Thread * holder;
+  /////////////////////////  lab3 end /////////////////////////////////
+
 };
 
 // The following class defines a "condition variable".  A condition
@@ -132,5 +139,54 @@ class Condition {
   private:
     char* name;
     // plus some other stuff you'll need to define
+ 
+  ////////////////////////////// lab3 st ////////////////////////////
+  public:
+    List * queue;
+  ///////////////////////////// lab3 end ////////////////////////////
+
+
 };
+
+///////////////////////// /// lab3 barrier st////////////////////////
+class Barrier{
+    private:
+           char *name;
+           int totThreads;
+           int arrvThreads;
+           Lock * mutex;
+           Condition *condWait;
+    public:
+          Barrier(char * debugName, int totTh);
+          ~Barrier();
+          char *getName() { return name;}
+	  void Synch() ;
+};
+////////////////////////////lab3 barrier end ///////////////////////
+
+/////////////////////////// lab3 readerWriterLock st////////////////
+class readerWriterLock{
+      private:
+          char * name;
+          int readerCount;     //using to wake writer or waiting
+          Lock * mutex;      // exclusion visiting
+          Lock * readLock;   // synch in reader & writer
+          Lock * writeLock;  // sych in writers
+          
+      public:
+          readerWriterLock(char * debugName);
+          ~readerWriterLock();
+          char * getName(){ return name; }
+          void readLockAcquire();
+          void readLockRelease();
+          void writeLockAcquire();
+          void writeLockRelease();
+};
+
+////////////////////////// lab3 readerWriterLock end ///////////////
+
+
 #endif // SYNCH_H
+
+
+

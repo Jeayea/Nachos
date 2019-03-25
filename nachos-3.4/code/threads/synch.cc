@@ -100,6 +100,7 @@ Semaphore::V()
 // Dummy functions -- so we can compile our later assignments 
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
+/*
 Lock::Lock(char* debugName) {}
 Lock::~Lock() {}
 void Lock::Acquire() {}
@@ -110,3 +111,175 @@ Condition::~Condition() { }
 void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
 void Condition::Signal(Lock* conditionLock) { }
 void Condition::Broadcast(Lock* conditionLock) { }
+*/
+/////////////////////// lab3 st  ////////////////////////////////
+
+Lock::Lock(char* debugName) {
+      name = debugName;
+      lockSem = new Semaphore(debugName, 1);
+}
+
+Lock::~Lock() { 
+      delete lockSem;       
+}
+
+void Lock::Acquire() {
+     IntStatus oldLevel = interrupt->SetLevel(IntOff); // ensure this is a atomic action
+     lockSem->P();
+     holder = currentThread;
+     (void)interrupt->SetLevel(oldLevel);
+}
+
+void Lock::Release() {
+     //printf("entering in the Release\n");
+     IntStatus oldLevel = interrupt->SetLevel(IntOff);
+     holder = NULL;
+     lockSem->V();
+     // printf("added the lockSem,and will leave Release\n");
+     (void)interrupt->SetLevel(oldLevel);
+}
+
+bool Lock::isHeldByCurrentThread(){
+     return (currentThread == holder);
+}
+
+///// condition start
+Condition::Condition(char* debugName) {
+    name = debugName;
+    queue = new List; // waiting queue
+ }
+
+Condition::~Condition() { 
+   delete queue;
+}
+
+void Condition::Wait(Lock* conditionLock) { 
+     // ASSERT(FALSE); 
+     //printf("entering Waiting func\n");
+     IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+     if(conditionLock->isHeldByCurrentThread()){
+        conditionLock->Release(); // inquish the lock
+        queue->Append((void *)currentThread);
+        currentThread->Sleep();   // go to sleep
+        conditionLock->Acquire();  // reaquire the lock
+       }
+     (void)interrupt->SetLevel(oldLevel);
+
+}
+
+void Condition::Signal(Lock* conditionLock) { 
+     Thread *thread;
+     IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    
+     if(conditionLock->isHeldByCurrentThread()){
+        thread = (Thread *)queue->Remove();
+        if(thread != NULL)
+            scheduler->ReadyToRun(thread);     // waking a thread in queue,then continuing 
+     }
+     (void)interrupt->SetLevel(oldLevel);   
+}
+
+void Condition::Broadcast(Lock* conditionLock) { 
+     Thread *thread;
+     IntStatus oldLevel = interrupt->SetLevel(IntOff);
+     if(conditionLock->isHeldByCurrentThread()){
+         thread = (Thread *)queue->Remove();
+         while(thread != NULL){               // waking all threads in the waiting list
+               scheduler->ReadyToRun(thread);
+               thread = (Thread *)queue->Remove();
+         }
+     }
+     (void)interrupt->SetLevel(oldLevel); 
+}
+
+
+/////////////////////// lab3 end ///////////////////////////////
+
+///////////////////////// lab3 barrier st //////////////////////
+Barrier::Barrier(char * debugName, int totTh){
+       name = debugName;
+       arrvThreads = 0;
+       totThreads = totTh;
+       mutex = new Lock(debugName);
+       condWait = new Condition(debugName);
+}
+
+Barrier::~Barrier(){
+       delete mutex;
+       delete condWait;
+}
+
+void Barrier::Synch(){
+     mutex->Acquire();
+     arrvThreads += 1;
+
+     if(totThreads == arrvThreads){
+     arrvThreads = 0;
+     condWait->Broadcast(mutex);
+     }
+     else
+         condWait->Wait(mutex);
+     mutex->Release();
+}
+////////////////////////// lab3 barrier end ///////////////////
+
+///////////////////////// lab3 readWriteLock st////////////////
+readerWriterLock::readerWriterLock(char* debugName){
+      name = debugName;
+      readerCount = 0;
+      mutex = new Lock("mutex");
+      readLock = new Lock("readLock");
+      writeLock = new Lock("writeLock");
+}
+readerWriterLock::~readerWriterLock(){
+      delete mutex;
+      delete readLock;
+      delete writeLock;
+}
+
+void readerWriterLock::readLockAcquire(){
+      readLock->Acquire();
+      mutex->Acquire();
+      readerCount += 1;
+      if(readerCount == 1){
+         writeLock->Acquire();
+      }
+      mutex->Release();
+      readLock->Release();
+}
+
+void readerWriterLock::readLockRelease(){
+      mutex->Acquire();
+      readerCount -= 1;
+      if(readerCount == 0){
+        writeLock->Release();
+        }
+      mutex->Release();
+}
+
+void readerWriterLock::writeLockAcquire(){
+      readLock->Acquire();
+      //printf("writer get rLock\n");
+      writeLock->Acquire();
+      //printf("writer get wLock\n");
+      readLock->Release();
+      //printf("writer released rLock\n");
+}
+
+void readerWriterLock::writeLockRelease(){
+      //printf("will release wLock\n");
+      writeLock->Release();
+      //readLock->Release();
+      //printf("writer released wLock\n");
+}
+///////////////////////// lab3 readWriteLock end /////////////
+
+
+
+
+
+
+
+
+

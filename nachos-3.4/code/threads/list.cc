@@ -28,7 +28,7 @@
 //----------------------------------------------------------------------
 
 ListElement::ListElement(void *itemPtr, int sortKey)
-{
+{    
      item = itemPtr;
      key = sortKey;
      next = NULL;	// assume we'll put it at the end of the list 
@@ -77,7 +77,9 @@ List::~List()
 void
 List::Append(void *item)
 {
+    //printf("entering in Append\n");
     ListElement *element = new ListElement(item, 0);
+    //printf("funded the fault");
 
     if (IsEmpty()) {		// list is empty
 	first = element;
@@ -87,6 +89,7 @@ List::Append(void *item)
 	last = element;
     }
     numInList++;
+    //printf("leaving Append\n");
 }
 
 //----------------------------------------------------------------------
@@ -222,10 +225,10 @@ List::SortedInsert(void *item, int sortKey)
 void *
 List::SortedRemove(int *keyPtr)
 {
+    //printf("SortedRemove %s\n");
     ListElement *element = first;
     void *thing;
-
-    if (IsEmpty()) 
+    if (IsEmpty())
 	return NULL;
 
     thing = first->item;
@@ -273,4 +276,5 @@ List::Remove(void *item)
     }
    //ASSERT(!IsInList(item));
 }
+
 
